@@ -1,0 +1,63 @@
+// Prisma schema for the Dependency Manager.
+// Single local user: all data lives in one SQLite database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum DepType {
+  NPM
+  MAVEN
+}
+
+enum Source {
+  MANUAL
+  UPLOADED
+}
+
+model Project {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  dependencies Dependency[]
+  containers   Container[]
+}
+
+// A library / package: an npm package or a Maven artifact.
+model Dependency {
+  id            Int      @id @default(autoincrement())
+  projectId     Int
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String // npm: "lodash" · maven: "org.apache:commons-lang3"
+  version       String
+  type          DepType
+  source        Source
+  latestVersion String?
+  lastCheckedAt DateTime?
+  isUpdatable   Boolean  @default(false)
+
+  @@unique([projectId, name])
+}
+
+// A Docker container image.
+model Container {
+  id            Int      @id @default(autoincrement())
+  projectId     Int
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  image        String  // e.g. "nginx", "ghcr.io/owner/app"
+  tag          String  // e.g. "latest", "3.2.2"
+  githubRepo   String? // optional ghcr→GitHub repo override, e.g. "immich-app/immich"
+  source       Source
+  latestVersion String?
+  lastCheckedAt DateTime?
+  isUpdatable   Boolean  @default(false)
+
+  @@unique([projectId, image, tag])
+}

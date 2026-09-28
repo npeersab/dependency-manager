@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.gitignore
+db
+prisma/dev.db
+*.sql.gz
+.env
+.env.*
+!.env.example
+playwright-mcp
+*.log
+.vscode
+.idea
+docker-compose*.yml
+!docker-compose.yml
