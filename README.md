@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dependency Manager
 
-## Getting Started
+A small local web app for tracking the dependencies and Docker containers of your projects — and keeping them up to date.
 
-First, run the development server:
+It manages two kinds of things per project:
+
+- **Dependencies** — npm (`package.json`) and Maven (`pom.xml`) packages, tracked by name.
+- **Containers** — Docker images from Docker Hub, `ghcr.io`, and `quay.io`, tracked by `image:tag`.
+
+You can create a project by uploading the relevant files (`package.json`, `pom.xml`, `docker-compose.yml`), or by filling in a form. A **Check for updates** flow queries the source registries and records the latest available version for each dependency and container.
+
+## Tech stack
+
+- [Next.js 14](https://nextjs.org) (App Router) + TypeScript
+- [Prisma](https://www.prisma.io) + SQLite
+- [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS](https://tailwindcss.com)
+- Single local user, no authentication
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create your database file and seed the Prisma client:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma migrate deploy   # or: npx prisma migrate dev
+npx prisma generate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy the example env file and adjust if needed:
 
-## Learn More
+```bash
+cp .env.example .env
+```
 
-To learn more about Next.js, take a look at the following resources:
+Run the development server (on port **8123**):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+PORT=8123 npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:8123](http://localhost:8123) in your browser.
 
-## Deploy on Vercel
+### Building for production
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build     # also typechecks
+npm run lint      # ESLint
+PORT=8123 npx next start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## How it works
+
+- **Projects** live at `/`, per-project views at `/projects/[id]`, and creation at `/projects/new`.
+- Data is fetched in server components (`src/lib/actions.ts` → Prisma). Client components mutate data and call `router.refresh()` so the server-rendered UI stays in sync.
+- **File parsing** (`src/lib/parsers/`) reads `package.json`, `pom.xml`, and `docker-compose.yml` in memory — uploaded files are parsed client-side and never written to disk.
+- **Update checks** (`src/lib/registries.ts`, `src/lib/image.ts`) look up the latest version from each registry. "Latest" means the highest *stable* tag, not the first one returned.
+
+## Configuration
+
+| Variable     | Description                          | Default          |
+| ------------ | ------------------------------------ | ---------------- |
+| `DATABASE_URL` | SQLite database location           | `file:./dev.db`  |
+| `PORT`       | Port for the dev/production server   | `8123`           |
+
+## Project structure
+
+```
+prisma/
+  schema.prisma      # Database schema
+  migrations/        # Prisma migrations
+src/
+  app/               # App Router routes
+  components/        # UI (shadcn) and per-project components
+  lib/               # Core logic: actions, parsers, registries, prisma
+```
+
+## License
+
+Private.
