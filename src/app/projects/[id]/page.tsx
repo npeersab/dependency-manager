@@ -7,7 +7,9 @@ export const metadata = {
 };
 
 export default async function ProjectPage({ params: { id } }: { params: { id: string } }) {
-  const project = await getProject(Number(id));
+  const numericId = Number(id);
+  if (!Number.isInteger(numericId)) notFound();
+  const project = await getProject(numericId);
   if (!project) notFound();
   return <ProjectView project={project} />;
 }
