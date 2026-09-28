@@ -91,20 +91,31 @@ export function NewProjectForm() {
         else if (kind === "pom.xml") parsed = parsePomXml(content);
         else parsed = parseDockerCompose(content);
 
+        // Dedup against the accumulator (prev), not the closure snapshot, so
+        // overlapping uploads processed before a re-render don't reintroduce
+        // members already queued by an earlier upload in this batch.
         let added = 0;
-        for (const d of parsed.dependencies) {
-          if (!dependencies.some((x) => x.name.toLowerCase() === d.name.toLowerCase())) {
-            setDependencies((prev) => [...prev, d]);
-            added++;
+        setDependencies((prev) => {
+          const next = [...prev];
+          for (const d of parsed.dependencies) {
+            if (!next.some((x) => x.name.toLowerCase() === d.name.toLowerCase())) {
+              next.push(d);
+              added++;
+            }
           }
-        }
-        for (const c of parsed.containers) {
-          const key = `${c.image}:${c.tag}`;
-          if (!containers.some((x) => `${x.image}:${x.tag}` === key)) {
-            setContainers((prev) => [...prev, c]);
-            added++;
+          return next;
+        });
+        setContainers((prev) => {
+          const next = [...prev];
+          for (const c of parsed.containers) {
+            const key = `${c.image}:${c.tag}`;
+            if (!next.some((x) => `${x.image}:${x.tag}` === key)) {
+              next.push(c);
+              added++;
+            }
           }
-        }
+          return next;
+        });
         toast.success(`Parsed ${added} new member(s) from ${file.name}`);
         setMode("manual"); // show the merged list
       } catch (err) {
