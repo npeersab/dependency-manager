@@ -241,17 +241,28 @@ async function dedupeProject(projectId: number) {
   }
 }
 
+/** Progress callback invoked after each member of a project is checked. */
+export type CheckProgressCallback = (progress: { checked: number; total: number }) => void;
+
 /**
  * Query every member of a project for its latest version, persist the result,
  * and return a summary. Failures are recorded, never fatal.
+ *
+ * `onProgress` is invoked after each member completes (used to drive a
+ * streaming UI); it is optional, so the plain server-action wrapper keeps
+ * working unchanged. `total` is fixed up front from the member counts.
  */
-export async function checkUpdates(projectId: number): Promise<CheckSummary> {
+export async function runCheckUpdates(
+  projectId: number,
+  onProgress?: CheckProgressCallback,
+): Promise<CheckSummary> {
   const [deps, containers] = await Promise.all([
     prisma.dependency.findMany({ where: { projectId } }),
     prisma.container.findMany({ where: { projectId } }),
   ]);
 
   const summary: CheckSummary = { checked: 0, updatable: 0, upToDate: 0, failed: 0 };
+  const total = deps.length + containers.length;
   const now = new Date();
 
   for (const dep of deps) {
@@ -260,6 +271,7 @@ export async function checkUpdates(projectId: number): Promise<CheckSummary> {
       dep.type === "MAVEN" ? await getMavenLatest(dep.name) : await getNpmLatest(dep.name);
     if (!latest) {
       summary.failed++;
+      onProgress?.({ checked: summary.checked, total });
       continue;
     }
     const isUpdatable = compareVersions(latest, dep.version) > 0;
@@ -269,6 +281,7 @@ export async function checkUpdates(projectId: number): Promise<CheckSummary> {
     });
     if (isUpdatable) summary.updatable++;
     else summary.upToDate++;
+    onProgress?.({ checked: summary.checked, total });
   }
 
   for (const c of containers) {
@@ -276,6 +289,7 @@ export async function checkUpdates(projectId: number): Promise<CheckSummary> {
     const { latest, isUpdatable } = await getContainerLatest(c.image, c.tag, c.githubRepo);
     if (!latest) {
       summary.failed++;
+      onProgress?.({ checked: summary.checked, total });
       continue;
     }
     await prisma.container.update({
@@ -284,9 +298,18 @@ export async function checkUpdates(projectId: number): Promise<CheckSummary> {
     });
     if (isUpdatable) summary.updatable++;
     else summary.upToDate++;
+    onProgress?.({ checked: summary.checked, total });
   }
 
   return summary;
+}
+
+/**
+ * Check a project for updates and return a summary. Thin wrapper over
+ * {@link runCheckUpdates} with no progress callback, used as a server action.
+ */
+export async function checkUpdates(projectId: number): Promise<CheckSummary> {
+  return runCheckUpdates(projectId);
 }
 
 /** Check a single dependency and persist the result. Returns latest version or null. */
