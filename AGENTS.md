@@ -26,3 +26,16 @@ Next.js 14 (App Router) + TypeScript, Prisma + SQLite, shadcn/ui + Tailwind. Sin
 - **docker-compose parser stores the image `splitImage` produces** (`src/lib/image.ts`), never reconstruct it by hand. For ghcr.io/quay.io that includes the registry prefix (`ghcr.io/immich-app/immich-server`); dropping it (storing `namespace/repo`) makes such an image resolve as Docker Hub and the check silently 404s.
 - **Digest-pinned images are skipped.** docker-compose parser ignores `image@sha256:...` (managed by digest, not a mutable tag); only tagged images become containers.
 - **lscr.io (and other non-special registry prefixes) are stripped to Docker Hub.** `splitImage` treats a 3-part reference like `lscr.io/linuxserver/sonarr` as Docker Hub `linuxserver/sonarr` — it drops the prefix and queries the remaining `{namespace}/{repo}`. This matches `~/docker/check-all-updates.py`; ghcr.io/quay.io are the only registries handled specially.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
