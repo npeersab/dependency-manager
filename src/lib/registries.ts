@@ -29,8 +29,28 @@ async function getToken(url: string): Promise<string | null> {
 export async function getNpmLatest(name: string): Promise<string | null> {
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`;
   const data = await httpJson(url);
+  const versions = data?.versions as Record<string, { version: string }> | undefined;
   const distTags = data?.["dist-tags"] as Record<string, unknown> | undefined;
-  return (distTags?.latest as string | undefined) ?? null;
+
+  // The `latest` dist-tag can point at a pre-release (Prisma publishes
+  // 8.0.0-rc.19 as its latest), so scan the published versions and keep the
+  // highest *stable* one — the same "latest stable" rule used for container
+  // tags — rather than trusting the dist-tag blindly.
+  let latestStable: string | null = null;
+  for (const v of Object.values(versions ?? {})) {
+    if (!isStable(v.version)) continue;
+    if (latestStable === null || compareVersions(v.version, latestStable) > 0) latestStable = v.version;
+  }
+
+  // No stable version published at all: fall back to the dist-tag when it looks
+  // stable, so a package that only ever ships pre-releases still reports
+  // something instead of failing.
+  if (latestStable === null) {
+    const distLatest = (distTags?.latest as string | undefined) ?? null;
+    return distLatest && isStable(distLatest) ? distLatest : null;
+  }
+
+  return latestStable;
 }
 
 /** Latest version of a Maven artifact (name is "groupId:artifactId"). */
