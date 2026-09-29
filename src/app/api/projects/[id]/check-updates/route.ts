@@ -8,8 +8,9 @@ type StreamEvent =
   | { type: "done"; summary: CheckSummary }
   | { type: "error"; message?: string };
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
-  const projectId = Number(params.id);
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const projectId = Number(id);
   if (Number.isNaN(projectId)) {
     return NextResponse.json({ error: "Invalid project id" }, { status: 400 });
   }

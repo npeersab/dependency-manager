@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { DepType } from "@prisma/client";
 import { Upload, X, Plus, Package } from "lucide-react";
@@ -270,7 +271,7 @@ export function NewProjectForm() {
       </CardContent>
       <CardFooter className="justify-end gap-2 border-t pt-4">
         <Button variant="outline" asChild>
-          <a href="/">Cancel</a>
+          <Link href="/">Cancel</Link>
         </Button>
         <Button onClick={handleSubmit} disabled={!canSubmit}>Create project</Button>
       </CardFooter>

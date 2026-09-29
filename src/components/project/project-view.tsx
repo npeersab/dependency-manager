@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Project } from "@prisma/client";
 import type { Dependency, Container } from "@prisma/client";
@@ -43,10 +44,10 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
 
       <div className="mx-auto min-h-screen max-w-5xl px-4 py-8">
         <Button variant="ghost" size="sm" asChild className="mb-4">
-          <a href="/">
+          <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to projects
-          </a>
+          </Link>
         </Button>
 
         <div className="mb-6">
