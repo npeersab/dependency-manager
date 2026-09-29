@@ -9,6 +9,10 @@ import { Button } from "./ui/button";
 export function Header({ cta }: { cta?: React.ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  // Hydration mount guard: the classic "set true on mount" pattern. The new
+  // react-hooks/set-state-in-effect rule flags synchronous setState in effects;
+  // this is the intended hydration-guard use, so disable inline.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
   const isDark = mounted && resolvedTheme === "dark";
 
