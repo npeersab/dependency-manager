@@ -35,6 +35,9 @@ yarn-error.log*
 # prisma
 prisma/dev.db
 
+# generated Prisma client (Prisma 7 writes here; not committed)
+src/generated/prisma
+
 # vercel
 .vercel
 
