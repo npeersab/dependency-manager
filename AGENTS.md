@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Next.js 14 (App Router) + TypeScript, Prisma + SQLite, shadcn/ui + Tailwind. Single local user, no auth. Manages project dependencies (npm/Maven) and Docker containers: CRUD, file-based project creation (pom.xml/package.json/docker-compose.yml), and a "Check for updates" flow that queries registries and persists latest versions.
+Next.js 16 (App Router) + TypeScript, Prisma 7 + SQLite, shadcn/ui + Tailwind. Single local user, no auth. Manages project dependencies (npm/Maven) and Docker containers: CRUD, file-based project creation (pom.xml/package.json/docker-compose.yml), and a "Check for updates" flow that queries registries and persists latest versions.
 
 ## Commands
 - Dev server: `PORT=8123 npm run dev` — **port 8123, not 3000** (3000 is occupied on this machine; the README still says 3000 and is stale).
 - Build (this also typechecks): `npm run build`
-- Lint: `npm run lint` (`next lint`). No test suite is configured.
-- Prisma: DB is SQLite at `prisma/dev.db` (`.env` → `DATABASE_URL="file:./dev.db"`). Run `npx prisma generate` after **any** schema change so the client sees new fields/tables; add a migration with `npx prisma migrate dev` when the schema changes.
+- Lint: `npm run lint` (ESLint with the Next.js config; `next lint` is removed in Next 15+, so use `npm run lint`, not `next lint`). No test suite is configured.
+- Prisma: DB is SQLite at `prisma/dev.db` (`.env` → `DATABASE_URL="file:./prisma/dev.db"`). The CLI reads `prisma7.config.ts` automatically, so `npx prisma ...` works (the `prisma7` binary is just an alias). Run `npx prisma generate` after **any** schema change so the client (generated to `src/generated/prisma`, gitignored) sees new fields/tables; add a migration with `npx prisma migrate dev` when the schema changes.
 - Serve production build: `PORT=8123 npx next start` (kill any existing listener on 8123 first).
 
 ## Architecture

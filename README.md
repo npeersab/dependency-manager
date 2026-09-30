@@ -11,8 +11,8 @@ You can create a project by uploading the relevant files (`package.json`, `pom.x
 
 ## Tech stack
 
-- [Next.js 14](https://nextjs.org) (App Router) + TypeScript
-- [Prisma](https://www.prisma.io) + SQLite
+- [Next.js 16](https://nextjs.org) (App Router) + TypeScript
+- [Prisma 7](https://www.prisma.io) + SQLite
 - [shadcn/ui](https://ui.shadcn.com) + [Tailwind CSS](https://tailwindcss.com)
 - Single local user, no authentication
 
@@ -22,7 +22,7 @@ You can create a project by uploading the relevant files (`package.json`, `pom.x
 npm install
 ```
 
-Create your database file and seed the Prisma client:
+Apply migrations (creates the schema) and generate the Prisma client:
 
 ```bash
 npx prisma migrate deploy   # or: npx prisma migrate dev
@@ -62,7 +62,7 @@ PORT=8123 npx next start
 
 | Variable     | Description                          | Default          |
 | ------------ | ------------------------------------ | ---------------- |
-| `DATABASE_URL` | SQLite database location           | `file:./dev.db`  |
+| `DATABASE_URL` | SQLite database location           | `file:./prisma/dev.db`  |
 | `PORT`       | Port for the dev/production server   | `8123`           |
 
 ## Project structure
