@@ -77,6 +77,10 @@ src/
   lib/               # Core logic: actions, parsers, registries, prisma
 ```
 
+## Contributing
+
+Developer setup, commands, and gotchas live in [AGENTS.md](AGENTS.md) — read it before editing (dev server runs on port **8123**, the Prisma client is generated to `src/generated/prisma`, and uploads are parsed in-memory only).
+
 ## License
 
 Private.
