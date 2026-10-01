@@ -17,6 +17,20 @@ export interface ImageRef {
 }
 
 /**
+ * Public registry page for a dependency, so a table cell can link out to it.
+ * NPM packages live on npmjs.com; Maven artifacts are best viewed on the
+ * mvnrepository.com artifact page, which keeps groupId:artifactId as-is.
+ */
+export function dependencyLink(name: string, type: "NPM" | "MAVEN"): string {
+  if (type === "MAVEN") {
+    const [groupId, artifactId] = name.split(":");
+    if (!groupId || !artifactId) return "";
+    return `https://mvnrepository.com/artifact/${groupId}/${artifactId}`;
+  }
+  return `https://www.npmjs.com/package/${name}`;
+}
+
+/**
  * Split a reference like `registry/namespace/repo:tag` into its parts.
  * Handles Docker Hub (default), ghcr.io and quay.io, plus digest pins.
  */
@@ -84,6 +98,25 @@ export function splitImage(image: string): ImageRef {
 /** Display label for an image (image + tag). */
 export function imageLabel(image: string, tag: string): string {
   return tag === "latest" ? image : `${image}:${tag}`;
+}
+
+/**
+ * Public registry page for an image, so a table cell can link out to it.
+ * `splitImage` already resolves the registry + namespace + repo, and it strips
+ * non-special prefixes (e.g. lscr.io) to Docker Hub — so the link points at the
+ * registry the image actually lives on.
+ */
+export function imageLink(image: string): string {
+  const ref = splitImage(image);
+  const path = `${ref.namespace}/${ref.repo}`;
+  switch (ref.registry) {
+    case "ghcr":
+      return `https://ghcr.io/${path}`;
+    case "quay":
+      return `https://quay.io/repository/${path}`;
+    default:
+      return `https://hub.docker.com/r/${path}`;
+  }
 }
 
 const DEV_KEYWORDS = [

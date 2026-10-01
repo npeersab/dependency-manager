@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Dependency } from "@prisma/client";
 import type { DepType } from "@prisma/client";
-import { Pencil, Trash2, RefreshCw, Plus } from "lucide-react";
+import { Pencil, Trash2, RefreshCw, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { checkDependency, updateDependency, deleteDependency, addDependency } from "@/lib/actions";
+import { dependencyLink } from "@/lib/image";
 import { toast } from "sonner";
 
 export function DependencyTable({
@@ -86,7 +88,17 @@ export function DependencyTable({
           <TableBody>
             {dependencies.map((dep) => (
               <TableRow key={dep.id}>
-                <TableCell className="font-medium">{dep.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={dependencyLink(dep.name, dep.type)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    {dep.name}
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Link>
+                </TableCell>
                 <TableCell><Badge variant="outline">{dep.version}</Badge></TableCell>
                 <TableCell className="text-muted-foreground">{dep.latestVersion ?? "—"}</TableCell>
                 <TableCell>{statusCell(dep)}</TableCell>

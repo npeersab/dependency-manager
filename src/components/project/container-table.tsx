@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Container } from "@prisma/client";
-import { Pencil, Trash2, RefreshCw, Plus } from "lucide-react";
+import { Pencil, Trash2, RefreshCw, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { checkContainer, updateContainer, deleteContainer, addContainer } from "@/lib/actions";
-import { imageLabel } from "@/lib/image";
+import { imageLabel, imageLink } from "@/lib/image";
 import { toast } from "sonner";
 
 export function ContainerTable({
@@ -88,7 +89,17 @@ export function ContainerTable({
           <TableBody>
             {containers.map((c) => (
               <TableRow key={c.id}>
-                <TableCell className="font-medium">{c.image}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={imageLink(c.image)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    {c.image}
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                  </Link>
+                </TableCell>
                 <TableCell><Badge variant="outline">{c.tag}</Badge></TableCell>
                 <TableCell className="text-muted-foreground">{c.latestVersion ?? "—"}</TableCell>
                 <TableCell>{statusCell(c)}</TableCell>
