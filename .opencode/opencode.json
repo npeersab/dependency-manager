@@ -1,9 +1,3 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "command": {
-    "graphify": {
-      "description": "Query or build the project knowledge graph at graphify-out/",
-      "template": "Use the local graphify knowledge graph (graphify-out/: graph.json, GRAPH_REPORT.md) to answer this. Run the matching graphify CLI subcommand via bash and answer from its output:\n- graphify query \"<question>\" for a focused question (add --budget if truncated)\n- graphify path \"<A>\" \"<B>\" for a relationship between two symbols/files\n- graphify explain \"<concept>\" for one concept\n- graphify . to (re)build the graph from source\n\nRequest: $ARGUMENTS"
-    }
-  }
+  "$schema": "https://opencode.ai/config.json"
 }

@@ -20,9 +20,6 @@
 .DS_Store
 *.pem
 
-# graphify knowledge graph output (machine-local)
-/graphify-out/
-
 # debug
 npm-debug.log*
 yarn-debug.log*
