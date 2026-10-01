@@ -20,6 +20,7 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
   const onRefresh = () => router.refresh();
   const [checking, setChecking] = useState(false);
   const [progress, setProgress] = useState(0);
+  const defaultTab = project.dependencies.length > 0 ? "deps" : "containers";
 
   return (
     <>
@@ -58,7 +59,7 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
         <EditProject project={project} />
 
         <div className="mt-6">
-          <Tabs defaultValue="deps">
+          <Tabs defaultValue={defaultTab}>
             <TabsList>
               <TabsTrigger value="deps">Dependencies</TabsTrigger>
               <TabsTrigger value="containers">Containers</TabsTrigger>
