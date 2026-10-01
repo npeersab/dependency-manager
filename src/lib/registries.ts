@@ -118,8 +118,10 @@ export interface LatestResult {
  * Because a single registry page may not contain the newest release (ghcr hides
  * it behind thousands of commit tags), we never report a "latest" that is lower
  * than the pinned tag: if nothing newer than the pinned tag is visible we treat
- * the container as up to date and surface the pinned tag itself. That keeps the
- * "latest" column from ever reading below "current" for busy registries.
+ * the container as up to date and surface the pinned tag itself, so the "latest"
+ * column never reads below "current" for busy registries. If the pinned tag is a
+ * pre-release newer than any stable tag we can see, we fall back to the highest
+ * stable tag seen, since this reports the latest *stable* release.
  */
 export async function getDockerLatest(image: string, currentTag: string): Promise<LatestResult> {
   const ref = splitImage(image);
@@ -162,14 +164,15 @@ export async function getDockerLatest(image: string, currentTag: string): Promis
     return { latest: latestVisible, isUpdatable: true };
   }
 
-  // Nothing newer than the pinned tag is visible → no update available. Report
-  // the highest stable tag we actually saw as "latest". If the pinned tag is
-  // higher, it is a pre-release/build we are running ahead of, so "latest"
-  // reading below "current" is correct — and we never surface a non-existent
-  // pinned tag as the latest. (For registries ordered newest-first this is the
-  // true latest; for the busy-registry fallback it is the highest tag we could
-  // see, which is honest rather than inventing an update.)
-  return { latest: latestVisible, isUpdatable: false };
+  // Nothing newer than the pinned tag is visible → no update available. Surface
+  // the pinned tag itself (when it is stable) so the "latest" column never reads
+  // below the version you are running. If the pinned tag is a pre-release newer
+  // than any stable tag we could see, fall back to the highest stable tag seen,
+  // since this reports the latest *stable* release.
+  return {
+    latest: isStable(currentTag) ? currentTag : latestVisible,
+    isUpdatable: false,
+  };
 }
 
 // ---------------------------------------------------------------------------
