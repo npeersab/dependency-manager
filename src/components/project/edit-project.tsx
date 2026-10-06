@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { parsePackageJson } from "@/lib/parsers/packageJson";
 import { parsePomXml } from "@/lib/parsers/pomXml";
+import { parseRequirementsTxt } from "@/lib/parsers/requirementsTxt";
 import { parseDockerCompose } from "@/lib/parsers/dockerCompose";
 import { updateProject, addMembers } from "@/lib/actions";
 import { toast } from "sonner";
@@ -62,13 +63,26 @@ export function EditProject({ project }: { project: Project }) {
 
   const handleFile = (file: File) => {
     const lower = file.name.toLowerCase();
-    const kind = lower.endsWith(".json") ? "package.json" : lower.endsWith(".xml") ? "pom.xml" : "docker-compose.yml";
+    const kind =
+      lower.endsWith(".json")
+        ? "package.json"
+        : lower.endsWith(".xml")
+          ? "pom.xml"
+          : lower.endsWith(".txt")
+            ? "requirements.txt"
+            : "docker-compose.yml";
     const reader = new FileReader();
     reader.onload = () => {
       const content = String(reader.result ?? "");
       try {
         const parsed =
-          kind === "package.json" ? parsePackageJson(content) : kind === "pom.xml" ? parsePomXml(content) : parseDockerCompose(content);
+          kind === "package.json"
+            ? parsePackageJson(content)
+            : kind === "pom.xml"
+              ? parsePomXml(content)
+              : kind === "requirements.txt"
+                ? parseRequirementsTxt(content)
+                : parseDockerCompose(content);
         setPendingDeps((prev) => {
           const next = [...prev];
           for (const d of parsed.dependencies) {
@@ -168,8 +182,8 @@ export function EditProject({ project }: { project: Project }) {
             }
           >
             <Upload className="h-5 w-5 text-muted-foreground" />
-            <p className="text-xs">Drop pom.xml · package.json · docker-compose.yml</p>
-            <input ref={fileInputRef} type="file" className="hidden" accept=".json,.xml,.yml,.yaml" onChange={(e) => {
+            <p className="text-xs">Drop pom.xml · package.json · requirements.txt · docker-compose.yml</p>
+            <input ref={fileInputRef} type="file" className="hidden" accept=".json,.xml,.txt,.yml,.yaml" onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
               e.target.value = "";

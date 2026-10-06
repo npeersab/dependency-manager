@@ -2,8 +2,15 @@
 
 import { prisma } from "./prisma";
 import { compareVersions, normalizeGithubRepo } from "./image";
-import { getNpmLatest, getMavenLatest, getContainerLatest } from "./registries";
+import { getNpmLatest, getMavenLatest, getPyLatest, getContainerLatest } from "./registries";
 import type { DepType, Source } from "@prisma/client";
+
+/** Latest-version resolver per dependency type, keyed by {@link DepType}. */
+const LATEST_BY_TYPE: Partial<Record<DepType, (name: string) => Promise<string | null>>> = {
+  NPM: getNpmLatest,
+  MAVEN: getMavenLatest,
+  PYTHON: getPyLatest,
+};
 
 // ---------------------------------------------------------------------------
 // Types
@@ -267,8 +274,8 @@ export async function runCheckUpdates(
 
   for (const dep of deps) {
     summary.checked++;
-    const latest =
-      dep.type === "MAVEN" ? await getMavenLatest(dep.name) : await getNpmLatest(dep.name);
+    const resolver = LATEST_BY_TYPE[dep.type];
+    const latest = resolver ? await resolver(dep.name) : null;
     if (!latest) {
       summary.failed++;
       onProgress?.({ checked: summary.checked, total });
@@ -316,7 +323,8 @@ export async function checkUpdates(projectId: number): Promise<CheckSummary> {
 export async function checkDependency(id: number): Promise<string | null> {
   const dep = await prisma.dependency.findUnique({ where: { id } });
   if (!dep) return null;
-  const latest = dep.type === "MAVEN" ? await getMavenLatest(dep.name) : await getNpmLatest(dep.name);
+  const resolver = LATEST_BY_TYPE[dep.type];
+  const latest = resolver ? await resolver(dep.name) : null;
   if (!latest) return null;
   const isUpdatable = compareVersions(latest, dep.version) > 0;
   await prisma.dependency.update({

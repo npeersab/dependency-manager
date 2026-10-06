@@ -166,12 +166,13 @@ function AddDependencyContent({ onAdd, onDone }: { onAdd: (dep: { name: string; 
             <SelectContent>
               <SelectItem value="NPM">npm</SelectItem>
               <SelectItem value="MAVEN">Maven</SelectItem>
+              <SelectItem value="PYTHON">PyPI</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-2">
           <Label>Name</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="lodash or org.apache:artifact" autoFocus />
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="lodash, org.apache:artifact, or flask" autoFocus />
         </div>
         <div className="space-y-2">
           <Label>Version</Label>
@@ -229,6 +230,7 @@ function EditDependencyDialog({
             <SelectContent>
               <SelectItem value="NPM">npm</SelectItem>
               <SelectItem value="MAVEN">Maven</SelectItem>
+              <SelectItem value="PYTHON">PyPI</SelectItem>
             </SelectContent>
           </Select>
         </div>

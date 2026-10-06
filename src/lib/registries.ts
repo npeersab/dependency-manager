@@ -3,7 +3,7 @@
  * Each returns the latest *stable* tag/version, or null on any failure.
  * Network access is assumed (single local user on a connected machine).
  */
-import { splitImage, isStable, compareVersions, normalizeGithubRepo } from "./image";
+import { splitImage, isStable, compareVersions, normalizeGithubRepo, normalizePipName } from "./image";
 
 const TIMEOUT_MS = 10_000;
 
@@ -63,6 +63,32 @@ export async function getMavenLatest(name: string): Promise<string | null> {
   const response = data?.response as { docs?: Array<Record<string, unknown>> } | undefined;
   const doc = response?.docs?.[0];
   return (doc?.latestVersion as string | undefined) ?? null;
+}
+
+/** Latest published version of a Python package (queries the PyPI JSON API). */
+export async function getPyLatest(name: string): Promise<string | null> {
+  const url = `https://pypi.org/pypi/${normalizePipName(name)}/json`;
+  const data = await httpJson(url);
+  const versions = data?.releases as Record<string, unknown> | undefined;
+
+  // Same "highest stable" rule as npm: scan every published version and keep the
+  // highest *stable* one rather than trusting `info.latest_version`, which for
+  // some distributions points at a pre-release.
+  let latestStable: string | null = null;
+  for (const v of Object.keys(versions ?? {})) {
+    if (!isStable(v)) continue;
+    if (latestStable === null || compareVersions(v, latestStable) > 0) latestStable = v;
+  }
+
+  if (latestStable === null) {
+    // No stable version at all: fall back to `info.latest_version` when it looks
+    // stable, so a package that only ships pre-releases still reports something.
+    const info = data?.info as { latest_version?: string } | undefined;
+    const latest = info?.latest_version;
+    return latest && isStable(latest) ? latest : null;
+  }
+
+  return latestStable;
 }
 
 // ---------------------------------------------------------------------------

@@ -17,15 +17,27 @@ export interface ImageRef {
 }
 
 /**
- * Public registry page for a dependency, so a table cell can link out to it.
- * NPM packages live on npmjs.com; Maven artifacts are best viewed on the
- * mvnrepository.com artifact page, which keeps groupId:artifactId as-is.
+ * PEP 503-normalize a Python package name: lowercase and collapse every run of
+ * `-`, `_`, or `.` to a single `-`. PyPI treats these as equivalent, so
+ * "Flask", "flask" and "flask_celf" all resolve to the same distribution.
  */
-export function dependencyLink(name: string, type: "NPM" | "MAVEN"): string {
+export function normalizePipName(name: string): string {
+  return name.trim().replace(/[-_.]+/g, "-").toLowerCase();
+}
+
+/**
+ * Public registry page for a dependency, so a table cell can link out to it.
+ * NPM packages live on npmjs.com; Maven artifacts on mvnrepository.com (which
+ * keeps groupId:artifactId as-is); Python packages on pypi.org.
+ */
+export function dependencyLink(name: string, type: "NPM" | "MAVEN" | "PYTHON"): string {
   if (type === "MAVEN") {
     const [groupId, artifactId] = name.split(":");
     if (!groupId || !artifactId) return "";
     return `https://mvnrepository.com/artifact/${groupId}/${artifactId}`;
+  }
+  if (type === "PYTHON") {
+    return `https://pypi.org/package/${normalizePipName(name)}`;
   }
   return `https://www.npmjs.com/package/${name}`;
 }

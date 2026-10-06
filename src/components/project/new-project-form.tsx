@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createProject } from "@/lib/actions";
 import { parsePackageJson } from "@/lib/parsers/packageJson";
 import { parsePomXml } from "@/lib/parsers/pomXml";
+import { parseRequirementsTxt } from "@/lib/parsers/requirementsTxt";
 import { parseDockerCompose } from "@/lib/parsers/dockerCompose";
 import { toast } from "sonner";
 
@@ -36,7 +37,7 @@ export function NewProjectForm() {
   const [dependencies, setDependencies] = useState<Dep[]>([]);
   const [containers, setContainers] = useState<Container[]>([]);
   const [mode, setMode] = useState("manual");
-  const [uploadKind, setUploadKind] = useState<"package.json" | "pom.xml" | "docker-compose.yml" | null>(null);
+  const [uploadKind, setUploadKind] = useState<"package.json" | "pom.xml" | "requirements.txt" | "docker-compose.yml" | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
   // manual add forms
@@ -80,7 +81,7 @@ export function NewProjectForm() {
     const kind = uploadKind ?? detectKind(file.name);
     if (!kind) {
       setUploadKind(null);
-      toast.error("Unsupported file. Upload package.json, pom.xml, or docker-compose.yml.");
+      toast.error("Unsupported file. Upload package.json, pom.xml, requirements.txt, or docker-compose.yml.");
       return;
     }
     const reader = new FileReader();
@@ -90,6 +91,7 @@ export function NewProjectForm() {
         let parsed;
         if (kind === "package.json") parsed = parsePackageJson(content);
         else if (kind === "pom.xml") parsed = parsePomXml(content);
+        else if (kind === "requirements.txt") parsed = parseRequirementsTxt(content);
         else parsed = parseDockerCompose(content);
 
         // Dedup against the accumulator (prev), not the closure snapshot, so
@@ -130,6 +132,7 @@ export function NewProjectForm() {
     const lower = filename.toLowerCase();
     if (lower.endsWith(".json")) return "package.json";
     if (lower.endsWith(".xml")) return "pom.xml";
+    if (lower.endsWith(".txt")) return "requirements.txt";
     if (lower.includes("compose")) return "docker-compose.yml";
     return "docker-compose.yml";
   };
@@ -175,9 +178,10 @@ export function NewProjectForm() {
                   <SelectContent>
                     <SelectItem value="NPM">npm</SelectItem>
                     <SelectItem value="MAVEN">Maven</SelectItem>
+                    <SelectItem value="PYTHON">PyPI</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input value={depName} onChange={(e) => setDepName(e.target.value)} placeholder="name (lodash / g:a)" />
+                <Input value={depName} onChange={(e) => setDepName(e.target.value)} placeholder="name (lodash / g:a / flask)" />
                 <Input value={depVersion} onChange={(e) => setDepVersion(e.target.value)} placeholder="version" className="w-28" />
                 <Button onClick={addDependency} size="icon" aria-label="Add dependency"><Plus /></Button>
               </div>
@@ -213,9 +217,9 @@ export function NewProjectForm() {
               <Upload className="h-8 w-8 text-muted-foreground" />
               <div>
                 <p className="text-sm font-medium">Drop a file here, or click to browse</p>
-                <p className="text-xs text-muted-foreground">package.json · pom.xml · docker-compose.yml (not stored on server)</p>
+                <p className="text-xs text-muted-foreground">package.json · pom.xml · requirements.txt · docker-compose.yml (not stored on server)</p>
               </div>
-              <input ref={fileInputRef} type="file" className="hidden" accept=".json,.xml,.yml,.yaml" onChange={(e) => {
+              <input ref={fileInputRef} type="file" className="hidden" accept=".json,.xml,.txt,.yml,.yaml" onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handleFile(file);
                 e.target.value = "";
@@ -228,6 +232,7 @@ export function NewProjectForm() {
                 <SelectContent>
                   <SelectItem value="package.json">package.json</SelectItem>
                   <SelectItem value="pom.xml">pom.xml</SelectItem>
+                  <SelectItem value="requirements.txt">requirements.txt</SelectItem>
                   <SelectItem value="docker-compose.yml">docker-compose.yml</SelectItem>
                 </SelectContent>
               </Select>
