@@ -52,11 +52,12 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+          <div className="flex items-center justify-between gap-4">
+            <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+            <EditProject project={project} />
+          </div>
           {project.description && <p className="mt-1 text-muted-foreground">{project.description}</p>}
         </div>
-
-        <EditProject project={project} />
 
         <div className="mt-6">
           <Tabs defaultValue={defaultTab}>
