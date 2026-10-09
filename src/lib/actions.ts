@@ -90,7 +90,10 @@ export async function updateProject(id: number, data: { name?: string; descripti
     where: { id },
     data: {
       name: data.name,
-      description: data.description,
+      // Prisma ignores fields set to `undefined`, so a cleared description
+      // (client sends `undefined` for an empty string) would leave the old
+      // value in place. Coerce to `null` to actually clear it.
+      description: data.description ?? null,
     },
   });
 }
