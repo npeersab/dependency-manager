@@ -121,12 +121,17 @@ export async function addMembers(projectId: number, input: AddMembersInput) {
     addedContainers: 0,
     updatedContainers: 0,
   };
+  // Ids of members whose current version was overridden by this upload. Their
+  // status is recomputed after the write; newly added members stay "Not checked".
+  const updatedDepIds: number[] = [];
+  const updatedContainerIds: number[] = [];
 
   for (const dep of input.dependencies ?? []) {
     const existing = await prisma.dependency.findFirst({ where: { projectId, name: dep.name } });
     if (existing) {
       await prisma.dependency.update({ where: { id: existing.id }, data: { version: dep.version, type: dep.type } });
       result.updatedDependencies++;
+      updatedDepIds.push(existing.id);
     } else {
       await prisma.dependency.create({
         data: { projectId, name: dep.name, version: dep.version, type: dep.type, source: "UPLOADED" },
@@ -140,12 +145,20 @@ export async function addMembers(projectId: number, input: AddMembersInput) {
     if (existing) {
       await prisma.container.update({ where: { id: existing.id }, data: { tag: c.tag } });
       result.updatedContainers++;
+      updatedContainerIds.push(existing.id);
     } else {
       await prisma.container.create({
         data: { projectId, image: c.image, tag: c.tag, source: "UPLOADED" },
       });
       result.addedContainers++;
     }
+  }
+
+  if (updatedDepIds.length || updatedContainerIds.length) {
+    await recheckMembers([
+      ...updatedDepIds.map((id) => ({ kind: "dependency" as const, id })),
+      ...updatedContainerIds.map((id) => ({ kind: "container" as const, id })),
+    ]);
   }
 
   return result;
@@ -174,7 +187,18 @@ export async function updateDependency(
   id: number,
   data: { name?: string; version?: string; type?: DepType },
 ) {
-  return prisma.dependency.update({ where: { id }, data });
+  const existing = await prisma.dependency.findUnique({ where: { id } });
+  const updated = await prisma.dependency.update({ where: { id }, data });
+
+  // Recompute status only when something that affects the latest-version lookup changed.
+  const changed =
+    (data.name !== undefined && data.name !== existing?.name) ||
+    (data.version !== undefined && data.version !== existing?.version) ||
+    (data.type !== undefined && data.type !== existing?.type);
+  if (changed) {
+    await recheckMembers([{ kind: "dependency", id }]);
+  }
+  return updated;
 }
 
 export async function deleteDependency(id: number) {
@@ -204,7 +228,8 @@ export async function updateContainer(
   id: number,
   data: { image?: string; tag?: string; githubRepo?: string | null },
 ) {
-  return prisma.container.update({
+  const existing = await prisma.container.findUnique({ where: { id } });
+  const updated = await prisma.container.update({
     where: { id },
     data: {
       ...(data.image !== undefined && { image: data.image }),
@@ -214,6 +239,15 @@ export async function updateContainer(
       }),
     },
   });
+
+  // The latest lookup depends on image + tag (and the ghcr repo override), so
+  // recompute status when either of those changed.
+  const imageChanged = data.image !== undefined && data.image !== existing?.image;
+  const tagChanged = data.tag !== undefined && data.tag !== existing?.tag;
+  if (imageChanged || tagChanged) {
+    await recheckMembers([{ kind: "container", id }]);
+  }
+  return updated;
 }
 
 export async function deleteContainer(id: number) {
@@ -345,4 +379,43 @@ export async function checkContainer(id: number): Promise<string | null> {
     data: { latestVersion: latest, lastCheckedAt: new Date(), isUpdatable },
   });
   return latest;
+}
+
+/**
+ * Recompute latestVersion / isUpdatable / lastCheckedAt for a set of members by
+ * querying their registry. Best-effort: a per-member failure (e.g. network
+ * timeout) is swallowed and that member keeps its current status, matching the
+ * behaviour of {@link runCheckUpdates}. Used to refresh status after a member's
+ * current version is changed via edit or upload.
+ */
+export async function recheckMembers(
+  members: Array<{ kind: "dependency" | "container"; id: number }>,
+): Promise<void> {
+  for (const member of members) {
+    try {
+      if (member.kind === "dependency") {
+        const dep = await prisma.dependency.findUnique({ where: { id: member.id } });
+        if (!dep) continue;
+        const resolver = LATEST_BY_TYPE[dep.type];
+        const latest = resolver ? await resolver(dep.name) : null;
+        if (!latest) continue;
+        const isUpdatable = compareVersions(latest, dep.version) > 0;
+        await prisma.dependency.update({
+          where: { id: dep.id },
+          data: { latestVersion: latest, lastCheckedAt: new Date(), isUpdatable },
+        });
+      } else {
+        const c = await prisma.container.findUnique({ where: { id: member.id } });
+        if (!c) continue;
+        const { latest, isUpdatable } = await getContainerLatest(c.image, c.tag, c.githubRepo);
+        if (!latest) continue;
+        await prisma.container.update({
+          where: { id: c.id },
+          data: { latestVersion: latest, lastCheckedAt: new Date(), isUpdatable },
+        });
+      }
+    } catch {
+      // Non-fatal: leave the member's status untouched.
+    }
+  }
 }
