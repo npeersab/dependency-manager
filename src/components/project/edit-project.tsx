@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Project } from "@prisma/client";
 import type { DepType } from "@prisma/client";
 import { Upload, X } from "lucide-react";
@@ -36,6 +37,7 @@ export function EditProject({ project }: { project: Project }) {
   const [pendingContainers, setPendingContainers] = useState<PendingContainer[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // Reset the form whenever the dialog opens so a previous session's edits
   // (and leftover pending uploads) don't leak into the next one. Dismissing
@@ -122,21 +124,35 @@ export function EditProject({ project }: { project: Project }) {
     setSaving(true);
     try {
       await updateProject(project.id, { name: name.trim(), description: description.trim() || undefined });
-      if (pendingDeps.length || pendingContainers.length) {
-        const stats = await addMembers(project.id, { dependencies: pendingDeps, containers: pendingContainers });
-        const parts: string[] = [];
-        if (stats.addedDependencies) parts.push(`${stats.addedDependencies} dep(s) added`);
-        if (stats.updatedDependencies) parts.push(`${stats.updatedDependencies} dep(s) updated`);
-        if (stats.addedContainers) parts.push(`${stats.addedContainers} container(s) added`);
-        if (stats.updatedContainers) parts.push(`${stats.updatedContainers} container(s) updated`);
-        toast.success(`Project saved — ${parts.join(", ")}`);
-      } else {
-        toast.success("Project saved");
-      }
+      toast.success("Project saved");
       setOpen(false);
       window.location.reload();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Apply queued upload members as its own action, separate from the edit save.
+  // Writes members (upsert by dep name / container image), then refreshes the
+  // tables in place without closing the dialog or losing any remaining queue.
+  const applyUpload = async () => {
+    if (!pendingDeps.length && !pendingContainers.length) return;
+    setSaving(true);
+    try {
+      const stats = await addMembers(project.id, { dependencies: pendingDeps, containers: pendingContainers });
+      const parts: string[] = [];
+      if (stats.addedDependencies) parts.push(`${stats.addedDependencies} dep(s) added`);
+      if (stats.updatedDependencies) parts.push(`${stats.updatedDependencies} dep(s) updated`);
+      if (stats.addedContainers) parts.push(`${stats.addedContainers} container(s) added`);
+      if (stats.updatedContainers) parts.push(`${stats.updatedContainers} container(s) updated`);
+      toast.success(parts.length ? parts.join(", ") : "Upload applied");
+      setPendingDeps([]);
+      setPendingContainers([]);
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setSaving(false);
     }
@@ -219,6 +235,12 @@ export function EditProject({ project }: { project: Project }) {
           <DialogClose asChild>
             <Button variant="outline" onClick={cancel}>Cancel</Button>
           </DialogClose>
+          <Button
+            onClick={applyUpload}
+            disabled={saving || (!pendingDeps.length && !pendingContainers.length)}
+          >
+            Apply upload
+          </Button>
           <Button onClick={save} disabled={saving || !name.trim()}>Save changes</Button>
         </DialogFooter>
       </DialogContent>
