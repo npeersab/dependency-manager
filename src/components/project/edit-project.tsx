@@ -126,7 +126,7 @@ export function EditProject({ project }: { project: Project }) {
       await updateProject(project.id, { name: name.trim(), description: description.trim() || undefined });
       toast.success("Project saved");
       setOpen(false);
-      window.location.reload();
+      router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Save failed");
     } finally {

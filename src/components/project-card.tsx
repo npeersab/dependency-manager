@@ -40,10 +40,6 @@ export function ProjectCard({ project }: { project: Project & { _count: { depend
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/projects/${project.id}`}>View details</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
