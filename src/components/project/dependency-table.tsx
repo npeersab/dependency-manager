@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import type { Dependency } from "@prisma/client";
 import type { DepType } from "@prisma/client";
-import { Pencil, Trash2, RefreshCw, Plus, ExternalLink } from "lucide-react";
+import { Pencil, Trash2, RefreshCw, Plus, ExternalLink, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { checkDependency, updateDependency, deleteDependency, addDependency } from "@/lib/actions";
 import { dependencyLink } from "@/lib/image";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function DependencyTable({
   projectId,
@@ -73,7 +74,11 @@ export function DependencyTable({
       </Dialog>
 
       {dependencies.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No dependencies added yet.</p>
+        <EmptyState
+          icon={Package}
+          title="No dependencies yet"
+          description="Add one manually or upload a manifest file."
+        />
       ) : (
         <Table>
           <TableHeader>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { Container } from "@prisma/client";
-import { Pencil, Trash2, RefreshCw, Plus, ExternalLink } from "lucide-react";
+import { Pencil, Trash2, RefreshCw, Plus, ExternalLink, Box } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
 import { checkContainer, updateContainer, deleteContainer, addContainer } from "@/lib/actions";
 import { imageLabel, imageLink } from "@/lib/image";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 
 export function ContainerTable({
   projectId,
@@ -74,7 +75,11 @@ export function ContainerTable({
       </Dialog>
 
       {containers.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No containers added yet.</p>
+        <EmptyState
+          icon={Box}
+          title="No containers yet"
+          description="Add one manually or upload a docker-compose file."
+        />
       ) : (
         <Table>
           <TableHeader>

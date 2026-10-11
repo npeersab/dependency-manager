@@ -35,7 +35,7 @@ export function ProjectCard({ project }: { project: Project & { _count: { depend
         </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="-mt-2 -mr-2 opacity-0 group-hover:opacity-100">
+            <Button variant="ghost" size="icon" aria-label="Project options" className="-mt-2 -mr-2 hover:bg-accent">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
