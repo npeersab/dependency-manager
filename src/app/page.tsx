@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { FolderOpen } from "lucide-react";
+import { Suspense } from "react";
 import { listProjects } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
-import { ProjectCard } from "@/components/project-card";
-import { EmptyState } from "@/components/empty-state";
+import { ProjectsGrid } from "@/components/project-grid";
+import { ProjectGridSkeleton } from "@/components/project-grid-skeleton";
 
 export const metadata = {
   title: "Projects",
@@ -15,8 +15,6 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const projects = await listProjects();
-
   return (
     <>
       <Header
@@ -35,25 +33,17 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {projects.length === 0 ? (
-          <EmptyState
-            icon={FolderOpen}
-            title="No projects yet"
-            description="Create your first project by hand or by uploading a pom.xml, package.json, or docker-compose file."
-            action={
-              <Button asChild>
-                <Link href="/projects/new">+ New Project</Link>
-              </Button>
-            }
-          />
-        ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </div>
-        )}
+        <Suspense fallback={<ProjectGridSkeleton />}>
+          <ProjectsList />
+        </Suspense>
       </div>
     </>
   );
+}
+
+// Isolated so the Suspense boundary can stream skeletons while this awaits the
+// DB, instead of blocking the whole page on the query.
+async function ProjectsList() {
+  const projects = await listProjects();
+  return <ProjectsGrid projects={projects} />;
 }

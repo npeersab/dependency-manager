@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { Container } from "@prisma/client";
 import { Pencil, Trash2, RefreshCw, Plus, ExternalLink, Box } from "lucide-react";
@@ -26,6 +26,7 @@ import { imageLabel, imageLink } from "@/lib/image";
 import { formatCheckedDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { SearchInput } from "@/components/search-input";
 
 export function ContainerTable({
   projectId,
@@ -38,6 +39,15 @@ export function ContainerTable({
 }) {
   const [refreshingId, setRefreshingId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return containers;
+    return containers.filter((c) =>
+      c.image.toLowerCase().includes(q) || c.tag.toLowerCase().includes(q),
+    );
+  }, [containers, query]);
 
   const refresh = async (id: number) => {
     setRefreshingId(id);
@@ -75,12 +85,27 @@ export function ContainerTable({
         </DialogContent>
       </Dialog>
 
+      {containers.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search containers" className="w-64" />
+          {query.trim() && (
+            <span className="text-xs text-muted-foreground">
+              {filtered.length} {filtered.length === 1 ? "match" : "matches"}
+            </span>
+          )}
+        </div>
+      )}
+
       {containers.length === 0 ? (
         <EmptyState
           icon={Box}
           title="No containers yet"
           description="Add one manually or upload a docker-compose file."
         />
+      ) : filtered.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          No containers match “{query.trim()}”.
+        </p>
       ) : (
         <Table>
           <TableHeader>
@@ -93,7 +118,7 @@ export function ContainerTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {containers.map((c) => (
+            {filtered.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">
                   <Link

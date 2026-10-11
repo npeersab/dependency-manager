@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { Dependency } from "@prisma/client";
 import type { DepType } from "@prisma/client";
@@ -28,6 +28,7 @@ import { dependencyLink } from "@/lib/image";
 import { formatCheckedDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { SearchInput } from "@/components/search-input";
 
 export function DependencyTable({
   projectId,
@@ -40,6 +41,13 @@ export function DependencyTable({
 }) {
   const [refreshingId, setRefreshingId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return dependencies;
+    return dependencies.filter((d) => d.name.toLowerCase().includes(q));
+  }, [dependencies, query]);
 
   const refresh = async (id: number) => {
     setRefreshingId(id);
@@ -74,12 +82,27 @@ export function DependencyTable({
         }} onDone={() => setOpen(false)} />
       </Dialog>
 
+      {dependencies.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <SearchInput value={query} onChange={setQuery} placeholder="Search dependencies" className="w-64" />
+          {query.trim() && (
+            <span className="text-xs text-muted-foreground">
+              {filtered.length} {filtered.length === 1 ? "match" : "matches"}
+            </span>
+          )}
+        </div>
+      )}
+
       {dependencies.length === 0 ? (
         <EmptyState
           icon={Package}
           title="No dependencies yet"
           description="Add one manually or upload a manifest file."
         />
+      ) : filtered.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          No dependencies match “{query.trim()}”.
+        </p>
       ) : (
         <Table>
           <TableHeader>
@@ -92,7 +115,7 @@ export function DependencyTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {dependencies.map((dep) => (
+            {filtered.map((dep) => (
               <TableRow key={dep.id}>
                 <TableCell className="font-medium">
                   <Link
