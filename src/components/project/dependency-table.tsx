@@ -25,7 +25,6 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { checkDependency, updateDependency, deleteDependency, addDependency } from "@/lib/actions";
 import { dependencyLink } from "@/lib/image";
-import { formatCheckedDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { SearchInput } from "@/components/search-input";
@@ -132,13 +131,12 @@ export function DependencyTable({
                   </Link>
                 </TableCell>
                 <TableCell><Badge variant="outline">{dep.version}</Badge></TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span>{dep.latestVersion ?? "—"}</span>
-                    {dep.lastCheckedAt && (
-                      <span className="mt-0.5 text-xs text-muted-foreground opacity-80">
-                        Checked {formatCheckedDate(dep.lastCheckedAt)}
-                      </span>
+                <TableCell className="align-middle">
+                  <div className="flex items-center gap-2">
+                    {dep.latestVersion ? (
+                      <Badge variant="outline">{dep.latestVersion}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </div>
                 </TableCell>

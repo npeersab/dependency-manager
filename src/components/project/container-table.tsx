@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { checkContainer, updateContainer, deleteContainer, addContainer } from "@/lib/actions";
 import { imageLabel, imageLink } from "@/lib/image";
-import { formatCheckedDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
 import { SearchInput } from "@/components/search-input";
@@ -135,13 +134,12 @@ export function ContainerTable({
                   </Link>
                 </TableCell>
                 <TableCell><Badge variant="outline">{c.tag}</Badge></TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span>{c.latestVersion ?? "—"}</span>
-                    {c.lastCheckedAt && (
-                      <span className="mt-0.5 text-xs text-muted-foreground opacity-80">
-                        Checked {formatCheckedDate(c.lastCheckedAt)}
-                      </span>
+                <TableCell className="align-middle">
+                  <div className="flex items-center gap-2">
+                    {c.latestVersion ? (
+                      <Badge variant="outline">{c.latestVersion}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </div>
                 </TableCell>
