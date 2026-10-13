@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Project } from "@prisma/client";
 import type { Dependency, Container } from "@prisma/client";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -44,13 +42,6 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
       )}
 
       <div className="mx-auto min-h-screen max-w-5xl px-4 py-8">
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link href="/">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to projects
-          </Link>
-        </Button>
-
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
