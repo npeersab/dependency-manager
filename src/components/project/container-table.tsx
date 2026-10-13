@@ -74,7 +74,7 @@ export function ContainerTable({
         <div className="flex items-center gap-2">
           {containers.length > 0 && (
             <>
-              <SearchInput value={query} onChange={setQuery} placeholder="Search containers" className="w-64" />
+              <SearchInput value={query} onChange={setQuery} placeholder="Search containers" className="w-80" />
               {query.trim() && (
                 <span className="text-xs text-muted-foreground">
                   {filtered.length} {filtered.length === 1 ? "match" : "matches"}

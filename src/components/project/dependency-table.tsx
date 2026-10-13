@@ -74,7 +74,7 @@ export function DependencyTable({
         <div className="flex items-center gap-2">
           {dependencies.length > 0 && (
             <>
-              <SearchInput value={query} onChange={setQuery} placeholder="Search dependencies" className="w-64" />
+              <SearchInput value={query} onChange={setQuery} placeholder="Search dependencies" className="w-80" />
               {query.trim() && (
                 <span className="text-xs text-muted-foreground">
                   {filtered.length} {filtered.length === 1 ? "match" : "matches"}
