@@ -71,30 +71,33 @@ export function ContainerTable({
 
   return (
     <div className="space-y-3">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button size="sm"><Plus className="mr-2 h-4 w-4" /> Add container</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Add container</DialogTitle></DialogHeader>
-          <AddContainerForm onAdd={async (c) => {
-            await addContainer(projectId, c);
-            toast.success("Container added");
-            onAdded();
-          }} onDone={() => setOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {containers.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <SearchInput value={query} onChange={setQuery} placeholder="Search containers" className="w-64" />
-          {query.trim() && (
-            <span className="text-xs text-muted-foreground">
-              {filtered.length} {filtered.length === 1 ? "match" : "matches"}
-            </span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {containers.length > 0 && (
+            <>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search containers" className="w-64" />
+              {query.trim() && (
+                <span className="text-xs text-muted-foreground">
+                  {filtered.length} {filtered.length === 1 ? "match" : "matches"}
+                </span>
+              )}
+            </>
           )}
         </div>
-      )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm"><Plus className="mr-2 h-4 w-4" /> Add container</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>Add container</DialogTitle></DialogHeader>
+            <AddContainerForm onAdd={async (c) => {
+              await addContainer(projectId, c);
+              toast.success("Container added");
+              onAdded();
+            }} onDone={() => setOpen(false)} />
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {containers.length === 0 ? (
         <EmptyState

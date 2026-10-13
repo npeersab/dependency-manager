@@ -71,27 +71,30 @@ export function DependencyTable({
 
   return (
     <div className="space-y-3">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button size="sm"><Plus className="mr-2 h-4 w-4" /> Add dependency</Button>
-        </DialogTrigger>
-        <AddDependencyContent onAdd={async (dep) => {
-          await addDependency(projectId, dep);
-          toast.success("Dependency added");
-          onAdded();
-        }} onDone={() => setOpen(false)} />
-      </Dialog>
-
-      {dependencies.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <SearchInput value={query} onChange={setQuery} placeholder="Search dependencies" className="w-64" />
-          {query.trim() && (
-            <span className="text-xs text-muted-foreground">
-              {filtered.length} {filtered.length === 1 ? "match" : "matches"}
-            </span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {dependencies.length > 0 && (
+            <>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search dependencies" className="w-64" />
+              {query.trim() && (
+                <span className="text-xs text-muted-foreground">
+                  {filtered.length} {filtered.length === 1 ? "match" : "matches"}
+                </span>
+              )}
+            </>
           )}
         </div>
-      )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm"><Plus className="mr-2 h-4 w-4" /> Add dependency</Button>
+          </DialogTrigger>
+          <AddDependencyContent onAdd={async (dep) => {
+            await addDependency(projectId, dep);
+            toast.success("Dependency added");
+            onAdded();
+          }} onDone={() => setOpen(false)} />
+        </Dialog>
+      </div>
 
       {dependencies.length === 0 ? (
         <EmptyState
