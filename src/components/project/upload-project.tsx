@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Project } from "@prisma/client";
 import type { DepType } from "@prisma/client";
-import { Upload, X } from "lucide-react";
+import { Upload, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -176,7 +176,8 @@ export function UploadProject({ project }: { project: Project }) {
             onClick={applyUpload}
             disabled={saving || (!pendingDeps.length && !pendingContainers.length)}
           >
-            Apply upload
+            <RefreshCw className={saving ? "animate-spin" : "hidden"} />
+            {saving ? "Applying…" : "Apply upload"}
           </Button>
         </DialogFooter>
       </DialogContent>
