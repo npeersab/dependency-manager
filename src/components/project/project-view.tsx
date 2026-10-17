@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/header";
 import { EditProject } from "./edit-project";
+import { UploadProject } from "./upload-project";
 import { CheckUpdatesButton } from "./check-updates-button";
 import { DependencyTable } from "./dependency-table";
 import { ContainerTable } from "@/components/project/container-table";
@@ -45,7 +46,10 @@ export function ProjectView({ project }: { project: Project & { dependencies: De
         <div className="mb-6">
           <div className="flex items-center justify-between gap-4">
             <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
-            <EditProject project={project} />
+            <div className="flex items-center gap-2">
+              <UploadProject project={project} />
+              <EditProject project={project} />
+            </div>
           </div>
           {project.description && <p className="mt-1 text-muted-foreground">{project.description}</p>}
         </div>
