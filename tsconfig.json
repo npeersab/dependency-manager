@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@prisma/client": [
+        "./src/generated/prisma/client"
       ]
     },
     "target": "ES2017"
