@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DepType } from "@prisma/client";
-import { Upload, X, Plus, Package } from "lucide-react";
+import { Upload, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -172,7 +172,7 @@ export function NewProjectForm() {
           <TabsContent value="manual" className="space-y-5 pt-4">
             {/* Dependency */}
             <div className="space-y-2">
-              <Label className="items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Dependency</Label>
+              <Label>Dependency</Label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Select value={depType} onValueChange={(v) => setDepType(v as DepType)}>
                   <SelectTrigger className="w-full sm:w-40"><SelectValue /></SelectTrigger>
