@@ -184,7 +184,7 @@ export function NewProjectForm() {
                 </Select>
                 <Input value={depName} onChange={(e) => setDepName(e.target.value)} placeholder="name (lodash / g:a / flask)" />
                 <Input value={depVersion} onChange={(e) => setDepVersion(e.target.value)} placeholder="version" className="w-28" />
-                <Button onClick={addDependency} size="icon" aria-label="Add dependency"><Plus /></Button>
+                <Button onClick={addDependency} size="icon" className="shrink-0" aria-label="Add dependency"><Plus /></Button>
               </div>
             </div>
 
@@ -194,7 +194,7 @@ export function NewProjectForm() {
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input value={img} onChange={(e) => setImg(e.target.value)} placeholder="image (nginx / ghcr.io/o/app)" />
                 <Input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="tag" className="w-28" />
-                <Button onClick={addContainer} size="icon" aria-label="Add container"><Plus /></Button>
+                <Button onClick={addContainer} size="icon" className="shrink-0" aria-label="Add container"><Plus /></Button>
               </div>
             </div>
           </TabsContent>
