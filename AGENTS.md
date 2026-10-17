@@ -10,7 +10,7 @@ Next.js 16 (App Router) + TypeScript, Prisma 7 + SQLite, shadcn/ui + Tailwind. S
 - Serve production build: `PORT=8123 npx next start` (kill any existing listener on 8123 first).
 
 ## Architecture
-- Routes: `/` (projects list), `/projects/[id]` (view), `/projects/new` (create).
+- Routes: `/` (projects list), `/projects/[id]` (view). New projects open in a modal from the home page.
 - Data is fetched in server components via `src/lib/actions.ts` (server actions → Prisma). Client components mutate data and must call `router.refresh()` afterward so the server-rendered UI reflects it (`project-card.tsx`, `check-updates-button.tsx`, `dependency-table.tsx`/`container-table.tsx`). Edit-mode save instead does a full `window.location.reload()`.
 - `src/lib/` is the real logic: `actions.ts` (all server actions + dedupe/update-check), `parsers/` (in-memory file parsing), `registries.ts` + `image.ts` (registry lookups + version logic), `prisma.ts` (singleton client).
 - `src/components/project/` = per-project UI; `src/components/ui/` = shadcn primitives.

@@ -1,12 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { DepType } from "@prisma/client";
 import { Upload, X, Plus, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -19,6 +18,7 @@ import { parsePomXml } from "@/lib/parsers/pomXml";
 import { parseRequirementsTxt } from "@/lib/parsers/requirementsTxt";
 import { parseDockerCompose } from "@/lib/parsers/dockerCompose";
 import { toast } from "sonner";
+import { useNewProject } from "./new-project-modal";
 
 interface Dep {
   name: string;
@@ -32,6 +32,7 @@ interface Container {
 
 export function NewProjectForm() {
   const router = useRouter();
+  const { setOpen } = useNewProject();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dependencies, setDependencies] = useState<Dep[]>([]);
@@ -141,16 +142,16 @@ export function NewProjectForm() {
     if (!canSubmit) return;
     await createProject({ name: name.trim(), description: description.trim() || undefined, dependencies, containers });
     toast.success("Project created");
-    router.push("/");
+    setOpen(false);
     router.refresh();
   };
 
   return (
-    <Card className="mx-auto w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle className="text-xl">New Project</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <>
+      <DialogHeader>
+        <DialogTitle className="text-xl">New Project</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-6">
         {/* Identity */}
         <div className="space-y-2">
           <Label htmlFor="name">Name *</Label>
@@ -273,13 +274,11 @@ export function NewProjectForm() {
             </ul>
           </div>
         )}
-      </CardContent>
-      <CardFooter className="justify-end gap-2 border-t pt-4">
-        <Button variant="outline" asChild>
-          <Link href="/">Cancel</Link>
-        </Button>
+      </div>
+      <div className="flex items-center justify-end gap-2 border-t pt-4">
+        <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
         <Button onClick={handleSubmit} disabled={!canSubmit}>Create project</Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </>
   );
 }

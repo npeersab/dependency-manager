@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { listProjects } from "@/lib/actions";
-import { Button } from "@/components/ui/button";
 import { Header } from "@/components/header";
 import { ProjectsGrid } from "@/components/project-grid";
 import { ProjectGridSkeleton } from "@/components/project-grid-skeleton";
+import { NewProjectButton, NewProjectModal, NewProjectProvider } from "@/components/project/new-project-modal";
 
 export const metadata = {
   title: "Projects",
@@ -16,14 +15,8 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   return (
-    <>
-      <Header
-        cta={
-          <Button asChild>
-            <Link href="/projects/new">+ New Project</Link>
-          </Button>
-        }
-      />
+    <NewProjectProvider>
+      <Header cta={<NewProjectButton />} />
 
       <div className="mx-auto min-h-screen max-w-5xl px-4 py-8">
         <div className="mt-8">
@@ -37,7 +30,9 @@ export default async function HomePage() {
           <ProjectsList />
         </Suspense>
       </div>
-    </>
+
+      <NewProjectModal />
+    </NewProjectProvider>
   );
 }
 

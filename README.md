@@ -53,7 +53,7 @@ PORT=8123 npx next start
 
 ## How it works
 
-- **Projects** live at `/`, per-project views at `/projects/[id]`, and creation at `/projects/new`.
+- **Projects** live at `/`, per-project views at `/projects/[id]`, and creation opens in a modal from the home page.
 - Data is fetched in server components (`src/lib/actions.ts` → Prisma). Client components mutate data and call `router.refresh()` so the server-rendered UI stays in sync.
 - **File parsing** (`src/lib/parsers/`) reads `package.json`, `pom.xml`, and `docker-compose.yml` in memory — uploaded files are parsed client-side and never written to disk.
 - **Update checks** (`src/lib/registries.ts`, `src/lib/image.ts`) look up the latest version from each registry. "Latest" means the highest *stable* tag, not the first one returned.

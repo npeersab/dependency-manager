@@ -3,11 +3,10 @@
 import { useMemo, useState } from "react";
 import type { Project } from "@prisma/client";
 import { FolderOpen, Search } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/project-card";
 import { EmptyState } from "@/components/empty-state";
 import { SearchInput } from "@/components/search-input";
+import { NewProjectButton } from "@/components/project/new-project-modal";
 
 export function ProjectsGrid({ projects }: { projects: Array<Project & { _count: { dependencies: number; containers: number } }> }) {
   const [query, setQuery] = useState("");
@@ -33,11 +32,7 @@ export function ProjectsGrid({ projects }: { projects: Array<Project & { _count:
           icon={FolderOpen}
           title="No projects yet"
           description="Create your first project by hand or by uploading a pom.xml, package.json, or docker-compose file."
-          action={
-            <Button asChild>
-              <Link href="/projects/new">+ New Project</Link>
-            </Button>
-          }
+          action={<NewProjectButton />}
         />
       ) : filtered.length === 0 ? (
         <EmptyState
