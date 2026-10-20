@@ -4,10 +4,10 @@ A small local web app for tracking the dependencies and Docker containers of you
 
 It manages two kinds of things per project:
 
-- **Dependencies** — npm (`package.json`) and Maven (`pom.xml`) packages, tracked by name.
+- **Dependencies** — npm (`package.json`), Maven (`pom.xml`), and Python (`requirements.txt`) packages, tracked by name.
 - **Containers** — Docker images from Docker Hub, `ghcr.io`, and `quay.io`, tracked by `image:tag`.
 
-You can create a project by uploading the relevant files (`package.json`, `pom.xml`, `docker-compose.yml`), or by filling in a form. A **Check for updates** flow queries the source registries and records the latest available version for each dependency and container.
+You can create a project by uploading the relevant files (`package.json`, `pom.xml`, `requirements.txt`, `docker-compose.yml`), or by filling in a form. A **Check for updates** flow queries the source registries and records the latest available version for each dependency and container.
 
 ## Tech stack
 
@@ -55,7 +55,7 @@ PORT=8123 npx next start
 
 - **Projects** live at `/`, per-project views at `/projects/[id]`, and creation opens in a modal from the home page.
 - Data is fetched in server components (`src/lib/actions.ts` → Prisma). Client components mutate data and call `router.refresh()` so the server-rendered UI stays in sync.
-- **File parsing** (`src/lib/parsers/`) reads `package.json`, `pom.xml`, and `docker-compose.yml` in memory — uploaded files are parsed client-side and never written to disk.
+- **File parsing** (`src/lib/parsers/`) reads `package.json`, `pom.xml`, `requirements.txt`, and `docker-compose.yml` in memory — uploaded files are parsed client-side and never written to disk.
 - **Update checks** (`src/lib/registries.ts`, `src/lib/image.ts`) look up the latest version from each registry. "Latest" means the highest *stable* tag, not the first one returned.
 
 ## Configuration

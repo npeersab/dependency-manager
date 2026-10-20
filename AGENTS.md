@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Next.js 16 (App Router) + TypeScript, Prisma 7 + SQLite, shadcn/ui + Tailwind. Single local user, no auth. Manages project dependencies (npm/Maven) and Docker containers: CRUD, file-based project creation (pom.xml/package.json/docker-compose.yml), and a "Check for updates" flow that queries registries and persists latest versions.
+Next.js 16 (App Router) + TypeScript, Prisma 7 + SQLite, shadcn/ui + Tailwind. Single local user, no auth. Manages project dependencies (npm/Maven/Python) and Docker containers: CRUD, file-based project creation (pom.xml/package.json/requirements.txt/docker-compose.yml), and a "Check for updates" flow that queries registries and persists latest versions.
 
 ## Commands
 - Dev server: `PORT=8123 npm run dev` — **port 8123, not the Next.js default of 3000** (set via the env prefix on both `dev` and `next start`).
@@ -22,6 +22,8 @@ Next.js 16 (App Router) + TypeScript, Prisma 7 + SQLite, shadcn/ui + Tailwind. S
 - **npm versions are cleaned on parse** — range prefixes stripped (`^1.4.0`/`~2.0.8` → `1.4.0`); hyphen ranges take the lower bound.
 - **pom.xml parser** resolves `${...}` from `<properties>` and parent-inherited versions, and only collects elements whose parent is `<dependency>` (so the root `<project>` coordinates are excluded).
 - **Identities:** dependency = `name` (unique per project); container = `image:tag` (unique per project).
+- **Python names are PEP 503-normalized.** The `requirements.txt` parser lowercases and collapses runs of `-`/`_`/`.` to `-` (`normalizePipName` in `src/lib/image.ts`), and dedupe matches on the normalized name — so `Flask`, `flask`, and `flask_selfish` are treated as the same dependency.
+- **Prisma 7 needs a driver adapter.** `src/lib/prisma.ts` builds `new PrismaBetterSqlite3({ url })` and passes `adapter` to `new PrismaClient(...)`. Prisma 7 no longer connects to SQLite directly — a bare `new PrismaClient()` (the Prisma 6 pattern) fails at runtime. Don't "simplify" it back.
 - **"Latest" = highest *stable* tag, not the first.** Registries return tags in their own order (not by version), so the code scans a single fetched page and keeps the highest stable tag (`isStable`); it never paginates to chase newer releases (ghcr.io buries them behind thousands of commit/PR tags). Docker Hub official images need the `library/` prefix in the API path (handled by `splitImage`/`getDockerLatest`). ghcr.io images resolve via the GitHub Releases API — `getContainerLatest` maps `ghcr.io/<org>/<name>` → `github.com/<org>/<name>` (overrides for `immich-*` in `GHCR_REPO_OVERRIDES`), and a per-container `githubRepo` override (schema field) takes precedence when the ghcr name differs from the release repo. Supported registries: Docker Hub, ghcr.io, quay.io. All registry calls need network access and time out at 10s.
 - **docker-compose parser stores the image `splitImage` produces** (`src/lib/image.ts`), never reconstruct it by hand. For ghcr.io/quay.io that includes the registry prefix (`ghcr.io/immich-app/immich-server`); dropping it (storing `namespace/repo`) makes such an image resolve as Docker Hub and the check silently 404s.
 - **Digest-pinned images are skipped.** docker-compose parser ignores `image@sha256:...` (managed by digest, not a mutable tag); only tagged images become containers.
